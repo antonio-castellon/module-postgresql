@@ -29,6 +29,7 @@
 
 const { Pool, Client } = require('pg')
 const { RDS } = require('aws-sdk')
+const utils = require('@acastellon/module-utils');
 
 module.exports = function(setup) {
 
@@ -99,6 +100,7 @@ module.exports = function(setup) {
 
             return new Promise(function(resolve, reject){
 
+                if (utils.isAnySQLInjection(collectionName)) reject('sql injection detected');
                 if (setup.TRACES) console.log(parameters);
 
                 let where = "";
@@ -111,10 +113,14 @@ module.exports = function(setup) {
 
                 if (where.length > 0) { where = ' WHERE ' + where; };
 
+                const query = {
+                    text: 'SELECT jt.* FROM \"' + collectionName + '\" as jt ' + where ,
+                    values: []
+                }
 
                 db
-                    .query('SELECT jt.* FROM $1 $2', [ collectionName, where])
-                    .then(res => resolve(res))
+                    .query(query)
+                    .then(res => resolve(res.rows))
                     .catch(err =>
                         setImmediate(() => {
                             console.log(err);
