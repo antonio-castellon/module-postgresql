@@ -7,12 +7,12 @@ const db = require('./postgresql.js')(config);
 
 async function main() {
 
-  //  await testSimpleSearchDoc();
- //   await testSimpleSearchByColumn();
+    await testSimpleSearchDoc();
+    await testSimpleSearchByColumn();
     await testSaveDoc();
-  //  await testSaveObject();
-  //  await testDelete();
-  //  await testDelete2();
+    await testSaveObject();
+    await testDelete();
+    await testDelete2();
 }
 
 
