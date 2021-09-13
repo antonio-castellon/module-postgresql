@@ -16,9 +16,9 @@
     "database"
   ],
   "dependencies": {
-    "pg": "^8.7.1",
+    "@acastellon/utils": "^1.0.2",
     "aws-sdk": "^2.986.0",
-    "@acastellon/utils": "^1.0.1"
+    "pg": "^8.7.1"
   },
   "author": "Antonio Castellon",
   "license": "MIT",

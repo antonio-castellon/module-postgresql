@@ -8,6 +8,7 @@ const db = require('./postgresql.js')(config);
 async function main() {
 
     await testSimpleSearchDoc();
+    await testSimpleSearchByColumn();
 
 }
 
@@ -25,6 +26,20 @@ function testSimpleSearchDoc(){
                 })
                 */
     } )
+}
+
+function testSimpleSearchByColumn(){
+
+    const filter = { ROLESASSTRING : 'Operator'}
+    db.findByColumns(filter, 'table_test')
+        .then( result => {
+            console.log( result );
+            /*
+                    result.forEach(v => {
+                        console.log(v)
+                    })
+                    */
+        } )
 }
 
 main();  // execute the test

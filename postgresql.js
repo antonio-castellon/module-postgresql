@@ -27,9 +27,9 @@
 // }
 //
 
-const { Pool, Client } = require('pg')
-const { RDS } = require('aws-sdk')
-const utils = require('@acastellon/module-utils');
+const { Pool, Client } = require('pg');
+const { RDS } = require('aws-sdk');
+const utils = require('@acastellon/utils')();
 
 module.exports = function(setup) {
 
@@ -91,32 +91,34 @@ module.exports = function(setup) {
     //
 
     model.findByDocKeys = findByDocKeys;
+    model.findByColumns = findByColumns;
 
     //
     //  FUNCTION BODY
     //
 
-    function findByDocKeys(parameters, collectionName, conditions = " || "){
+    function findByDocKeys(parameters, tableName, docName = "document",conditions = " || "){
 
             return new Promise(function(resolve, reject){
 
-                if (utils.isAnySQLInjection(collectionName)) reject('sql injection detected');
-                if (setup.TRACES) console.log(parameters);
+                if (utils.isAnySQLInjection(tableName) || utils.isAnySQLInjection(docName)) reject('sql injection detected');
 
                 let where = "";
                 let aux = "";
 
                 Object.keys(parameters).forEach(function(key) {
-                    where = where + aux + 'jt."document"->>\'' + key + '\'=\'' + parameters[key] + '\'';
+                    where = where + aux + 'jt."' + docName +'"->>\'' + key + '\'=\'' + parameters[key] + '\'';
                     aux = conditions;
                 })
 
                 if (where.length > 0) { where = ' WHERE ' + where; };
 
                 const query = {
-                    text: 'SELECT jt.* FROM \"' + collectionName + '\" as jt ' + where ,
+                    text: 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where ,
                     values: []
                 }
+
+                if (setup.TRACES) console.log(query);
 
                 db
                     .query(query)
@@ -127,6 +129,41 @@ module.exports = function(setup) {
                             reject(err);
                         })
                     )
+        });
+    }
+
+    function findByColumns(parameters, tableName, conditions = " || ") {
+
+        return new Promise(function(resolve, reject){
+
+            if (utils.isAnySQLInjection(tableName)) reject('sql injection detected');
+
+            let where = "";
+            let aux = "";
+
+            Object.keys(parameters).forEach(function(key) {
+                where = where + aux + 'jt."' + key + '"=\'' + parameters[key] + '\'';
+                aux = conditions;
+            })
+
+            if (where.length > 0) { where = ' WHERE ' + where; };
+
+            const query = {
+                text: 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where ,
+                values: []
+            }
+
+            if (setup.TRACES) console.log(query);
+
+            db
+                .query(query)
+                .then(res => resolve(res.rows))
+                .catch(err =>
+                    setImmediate(() => {
+                        console.log(err);
+                        reject(err);
+                    })
+                )
         });
     }
 
