@@ -94,9 +94,10 @@ module.exports = function(setup) {
     model.findByColumns = findByColumns;
     model.saveDocument = saveDocument;
     model.save = save;
+    model.remove = remove;
 
     //
-    //  FUNCTION BODY
+    //  FUNCTION BODY ( PUBLIC )
     //
 
     function findByDocKeys(values, tableName, docName = "document",conditions = " || "){
@@ -277,6 +278,37 @@ module.exports = function(setup) {
         });
 
     }
+
+    function remove(tableName, where, docName){
+
+        return new Promise(function(resolve, reject) {
+
+            if (utils.isAnySQLInjection(tableName)) reject('sql injection detected');
+            if (utils.isEmpty(where)) reject('missing filter (where) to identify items to be deleted');
+
+            let cmdQuery = 'DELETE FROM \"' + tableName + '\" WHERE ' + getWhere(where, docName);
+
+            const query = { text: cmdQuery , values: []  }
+
+            if (setup.TRACES) console.log(query);
+
+            db
+                .query(query)
+                .then(res => resolve(res.rows))
+                .catch(err =>
+                    setImmediate(() => {
+                        console.log(err);
+                        reject(err);
+                    })
+                )
+
+        });
+    }
+
+
+    //
+    // PRIVATE FUNCTIONS
+    //
 
     function Escape(value){
 

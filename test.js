@@ -7,10 +7,12 @@ const db = require('./postgresql.js')(config);
 
 async function main() {
 
-    // await testSimpleSearchDoc();
-    // await testSimpleSearchByColumn();
-    // await testSaveDoc();
+    await testSimpleSearchDoc();
+    await testSimpleSearchByColumn();
+    await testSaveDoc();
     await testSaveObject();
+    await testDelete();
+    await testDelete2();
 }
 
 
@@ -50,6 +52,16 @@ function testSaveDoc(){
 function testSaveObject(){
 
     db.save({ DISABLED : true }, 'table_test', { ROLESASSTRING : 'Operator' })
+}
+
+function testDelete(){
+    const newdoc = { name : "Manolo el gafotas", urgent: false, number : 555 }
+    db.remove('JSON_TABLE', newdoc, "document");
+}
+
+function testDelete2(){
+
+    db.remove('table_test_1', {ROLESASSTRING : 'Operator' } );
 }
 
 main();  // execute the test
