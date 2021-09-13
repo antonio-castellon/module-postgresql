@@ -1,6 +1,6 @@
 "use strict";
 //
-// PostgreSQL connector manager.
+// PostgreSQL connector manager specialized on JSON objects.
 //
 // Castellon.CH (c)
 // Author: Antonio Castellon - antonio@castellon.ch
@@ -25,6 +25,8 @@
 //
 //  	, TRACES : true
 // }
+//
+//
 //
 
 const { Pool, Client } = require('pg');
@@ -100,87 +102,16 @@ module.exports = function(setup) {
     //  FUNCTION BODY ( PUBLIC )
     //
 
-    function findByDocKeys(values, tableName, docName = "document",conditions = " || "){
-
-            return new Promise(function(resolve, reject){
-
-                if (utils.isAnySQLInjection(tableName)
-                    || utils.isAnySQLInjection(docName)
-                    || utils.isAnySQLInjection(conditions)) reject('sql injection detected');
-
-                let where = "";
-                let aux = "";
-
-                Object.keys(values).forEach(function(key) {
-
-                    // to substitute by regular expression toa void correct values
-                    // if (utils.isAnySQLInjection(parameters[key])) reject('sql injection detected');
-
-                    where = where + aux + 'jt."' + docName +'"->>\'' + key + '\'=\'' + values[key] + '\'';
-                    aux = conditions;
-                })
-
-                if (where.length > 0) { where = ' WHERE ' + where; };
-
-                const query = {
-                    text: 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where ,
-                    values: []
-                }
-
-                if (setup.TRACES) console.log(query);
-
-                db
-                    .query(query)
-                    .then(res => resolve(res.rows))
-                    .catch(err =>
-                        setImmediate(() => {
-                            console.log(err);
-                            reject(err);
-                        })
-                    )
-        });
+    function findByDocKeys(tableName, where, docName = "document",conditions = " || ") {
+            return find(where, tableName, docName, conditions);
     }
 
-    function findByColumns(values, tableName, conditions = " || ") {
-
-        return new Promise(function(resolve, reject){
-
-            if (utils.isAnySQLInjection(tableName)
-                || utils.isAnySQLInjection(conditions)) reject('sql injection detected');
-
-            let where = "";
-            let aux = "";
-
-            Object.keys(values).forEach(function(key) {
-
-                // to substitute by regular expression toa void correct values
-                // if (utils.isAnySQLInjection(parameters[key])) reject('sql injection detected');
-
-                where = where + aux + 'jt."' + key + '"=\'' + values[key] + '\'';
-                aux = conditions;
-            })
-
-            if (where.length > 0) { where = ' WHERE ' + where; };
-
-            const query = {
-                text: 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where ,
-                values: []
-            }
-
-            if (setup.TRACES) console.log(query);
-
-            db
-                .query(query)
-                .then(res => resolve(res.rows))
-                .catch(err =>
-                    setImmediate(() => {
-                        console.log(err);
-                        reject(err);
-                    })
-                )
-        });
+    function findByColumns(tableName, where, conditions = " || ") {
+        return find(where, tableName, null, conditions);
     }
 
+    // Insert or Update JSON-Document on a table that has a JSON column,
+    // WHERE : based on the internal values from the JSON stored if exists
     function saveDocument(document, tableName, where, docName = "document"){
 
         return new Promise(function(resolve, reject){
@@ -230,6 +161,7 @@ module.exports = function(setup) {
         });
     }
 
+    // Insert or update values on a Relational Table
     function save(values, tableName, where = {}){
 
         return new Promise(function(resolve, reject) {
@@ -310,6 +242,37 @@ module.exports = function(setup) {
     // PRIVATE FUNCTIONS
     //
 
+    function find(values, tableName, docName,conditions){
+
+        return new Promise(function(resolve, reject){
+
+            if (utils.isAnySQLInjection(tableName)
+                || utils.isAnySQLInjection('' + docName)
+                || utils.isAnySQLInjection('' + conditions)) reject('sql injection detected');
+
+            let where = getWhere(values,docName, conditions);
+
+            if (where.length > 0) { where = ' WHERE ' + where; };
+
+            const query = {
+                text: 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where ,
+                values: []
+            }
+
+            if (setup.TRACES) console.log(query);
+
+            db
+                .query(query)
+                .then(res => resolve(res.rows))
+                .catch(err =>
+                    setImmediate(() => {
+                        console.log(err);
+                        reject(err);
+                    })
+                )
+        });
+    }
+
     function Escape(value){
 
         if (isNaN(value)) return  '\"' + value + '\"'
@@ -329,7 +292,7 @@ module.exports = function(setup) {
         return _pairs;
     }
 
-    function getWhere(values, docName){
+    function getWhere(values, docName, conditions = " && "){
         let strWhere = "";
         let _aux = "";
         let _prefixDoc = "";
@@ -340,7 +303,7 @@ module.exports = function(setup) {
 
         Object.keys(values).forEach(function(key) {
             strWhere = strWhere + _aux + _prefixDoc + _escape + key + _escape + '=\'' + values[key] + '\'';
-            _aux = ' AND ';
+            _aux = conditions;
         })
 
         return strWhere;

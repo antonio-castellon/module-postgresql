@@ -7,12 +7,12 @@ const db = require('./postgresql.js')(config);
 
 async function main() {
 
-    await testSimpleSearchDoc();
-    await testSimpleSearchByColumn();
+  //  await testSimpleSearchDoc();
+ //   await testSimpleSearchByColumn();
     await testSaveDoc();
-    await testSaveObject();
-    await testDelete();
-    await testDelete2();
+  //  await testSaveObject();
+  //  await testDelete();
+  //  await testDelete2();
 }
 
 
@@ -20,7 +20,7 @@ function testSimpleSearchDoc(){
 
     const docKeys = { pmi_code : 'A10.345'}
 
-    db.findByDocKeys(docKeys, 'JSON_TABLE')
+    db.findByDocKeys('JSON_TABLE', docKeys)
         .then( result => {
         console.log( result );
         /*
@@ -34,7 +34,7 @@ function testSimpleSearchDoc(){
 function testSimpleSearchByColumn(){
 
     const filter = { ROLESASSTRING : 'Operator'}
-    db.findByColumns(filter, 'table_test')
+    db.findByColumns('table_test', filter)
         .then( result => {
             console.log( result );
         } )
