@@ -2,7 +2,7 @@
   "name": "@acastellon/postgresql",
   "version": "1.0.3",
   "description": "",
-  "main": "index.js",
+  "main": "postgresql.js",
   "scripts": {
     "test": "node test.js"
   },
