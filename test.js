@@ -11,7 +11,7 @@ async function main() {
     await testSimpleSearchByColumn();
     await testSaveDoc();
     await testSaveObject();
-    await testSaveObject2();
+   // await testSaveObject2();
     await testDelete();
     await testDelete2();
 }
@@ -57,7 +57,7 @@ function testSaveObject(){
 
 function testSaveObject2(){
 
-    db.save({ document : { pmi_code : 'test' , pmi_name: 'test'} }, 'flavors' , { id: 2 });
+    db.save({"batch": "XXX.344", "status": "DDDD", "location": "XXXX", }, 'table_test' , { id: 2 });
 }
 
 function testDelete(){

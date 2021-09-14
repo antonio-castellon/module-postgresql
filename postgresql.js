@@ -81,11 +81,11 @@ module.exports = function(setup) {
 
 
     db.connect()
-      .then(client => {
+        .then(client => {
             console.log('postgresql connection successful')
             client.release()
-      })
-      .catch(err => console.error('error connecting to postgrsql', err.stack));
+        })
+        .catch(err => console.error('error connecting to postgrsql', err.stack));
 
 
     //
@@ -106,6 +106,12 @@ module.exports = function(setup) {
     //  FUNCTION BODY ( PUBLIC )
     //
 
+    /**
+     * Direct SQL query to the database
+     * @param sql - SQL command sentence
+     * @param params - parameters if are needed in the sentence using ($1, $2 ... ) as a reference in the query.
+     * @returns {*}
+     */
     function execute(sql,params ){
         const query = {
             text: sql ,
@@ -118,8 +124,17 @@ module.exports = function(setup) {
 
     }
 
+    /**
+     * Retrieve all JSON Document objects that match with the condition inside the document data schema
+     *
+     * @param tableName - name of the table that contains the documents
+     * @param where - pair key-values that represents the condition to look inside the documents
+     * @param docName - name of the field on the table that refers to the dcouments (tip, a table could contain several columns with several documents aligned)
+     * @param conditions - to stablish if the conditions are restrictive or not ( AND , OR ) for the where clausule.
+     * @returns {Promise<unknown>}
+     */
     function findByDocKeys(tableName, where, docName = "document",conditions = " || ") {
-            return find(where, tableName, docName, conditions);
+        return find(where, tableName, docName, conditions);
     }
 
     function findAllFieldsByDocKeys(tableName, where, docName = "document",conditions = " || ") {
@@ -130,8 +145,16 @@ module.exports = function(setup) {
         return find(where, tableName, null, conditions);
     }
 
-    // Insert or Update JSON-Document on a table that has a JSON column,
-    // WHERE : based on the internal values from the JSON stored if exists
+    /**
+     * Save a JSON Document Object inside a table, to be used when a table has no column with an ID to identify each
+     * document as unique, and instead to use another external column as PK, it uses property(es) from inside the documents
+     *
+     * @param document - new value of the document to be stored
+     * @param tableName - name of the table
+     * @param where - comndition to match for all documents
+     * @param docName - name of the column name that contains the document
+     * @returns {Promise<[JSON Objects]>}
+     */
     function saveDocument(document, tableName, where, docName = "document"){
 
         return new Promise(function(resolve, reject){
@@ -148,9 +171,9 @@ module.exports = function(setup) {
                     'DO $$ BEGIN ' +
                     ' IF EXISTS ( SELECT * FROM "#{tableName}" #{where} )' +
                     ' THEN ' +
-                        ' UPDATE "#{tableName}" SET "#{docName}" = \'#{document}\' #{where}; ' +
+                    ' UPDATE "#{tableName}" SET "#{docName}" = \'#{document}\' #{where}; ' +
                     ' ELSE ' +
-                        ' INSERT INTO "#{tableName}" ("#{docName}") VALUES (\'#{document}\'); ' +
+                    ' INSERT INTO "#{tableName}" ("#{docName}") VALUES (\'#{document}\'); ' +
                     ' END IF; ' +
                     'END $$;';
             }
@@ -172,7 +195,14 @@ module.exports = function(setup) {
         });
     }
 
-    // Insert or update values on a Relational Table
+    /**
+     * Save column values inside a declared table. It can be used to update only some fields of the table.
+     *
+     * @param values - pair key-value that represents: column_name : value_to_update_insert
+     * @param tableName - name of the table to store all data
+     * @param where - condition in order to update the row, if foesnt match the function will insert a new data
+     * @returns {Promise<true|error>}
+     */
     function save(values, tableName, where = {}){
 
         return new Promise(function(resolve, reject) {
@@ -195,10 +225,10 @@ module.exports = function(setup) {
             }
 
             cmdQuery = cmdQuery.replace(/#{tableName}/g, tableName)
-                                .replace(/#{where}/g, strWhere)
-                                .replace(/#{colNames}/g, Object.keys(values))
-                                .replace(/#{values}/g, getValues(Object.values(values)))
-                                .replace(/#{pairAssignations}/g, getPairs(values))
+                .replace(/#{where}/g, strWhere)
+                .replace(/#{colNames}/g, Object.keys(values))
+                .replace(/#{values}/g, getValues(Object.values(values)))
+                .replace(/#{pairAssignations}/g, getPairs(values))
             ;
 
 
@@ -214,6 +244,14 @@ module.exports = function(setup) {
 
     }
 
+    /**
+     * delete row data from a table
+     *
+     * @param tableName - name of the table
+     * @param where - condition to match as a pair key-value object
+     * @param docName - in case that the condition is based on properties inside a JSON Document, the name of the column that contains this document
+     * @returns {Promise<true|error>}
+     */
     function remove(tableName, where, docName){
 
         return new Promise(function(resolve, reject) {
@@ -319,10 +357,10 @@ module.exports = function(setup) {
     function getValues(values){
 
         const all = values.map(el => {
-           return Escape(el)
+            return Escape(el)
         })
 
-            return all.join(',');
+        return all.join(',');
     }
 
     return model;

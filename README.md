@@ -62,16 +62,16 @@ saved for example as 'config.postgresql.js'
 ##### It means, all documents that has the same conditions on the table referenced will be changed for the new JSON document value. 
 
     saveDocument(document, tableName, where[, docName])
-        * @param document - document to be saved
+        * @param document - document to be saved 
         * @param tableName - Name of the table 
         * @param where - JSON object that contains the parameters to be found on the JSON Document
         * @param docName - name of the column on table that contains the JSON data, by default: 'document'
         * @return - true if te operation was sucessfully done
 
-##### Insert or Update values from a Table
+##### Save column values inside a declared table. It can be used to update only some fields of the table.
 
     save(values, tableName [, where])
-        * @param values - to update or to be saved
+        * @param values - to update or to be saved as a pair key-values on an Object
         * @param tableName - Name of the table
         * @param where - JSON object that contains the parameters to use in the filter search, by default = {}
         * @return - true if te operation was sucessfully done
