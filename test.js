@@ -11,6 +11,7 @@ async function main() {
     await testSimpleSearchByColumn();
     await testSaveDoc();
     await testSaveObject();
+    await testSaveObject2();
     await testDelete();
     await testDelete2();
 }
@@ -52,6 +53,11 @@ function testSaveDoc(){
 function testSaveObject(){
 
     db.save({ DISABLED : true }, 'table_test', { ROLESASSTRING : 'Operator' })
+}
+
+function testSaveObject2(){
+
+    db.save({ document : { pmi_code : 'test' , pmi_name: 'test'} }, 'flavors' , { id: 2 });
 }
 
 function testDelete(){

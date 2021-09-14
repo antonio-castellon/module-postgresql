@@ -197,7 +197,7 @@ module.exports = function(setup) {
             cmdQuery = cmdQuery.replace(/#{tableName}/g, tableName)
                                 .replace(/#{where}/g, strWhere)
                                 .replace(/#{colNames}/g, Object.keys(values))
-                                .replace(/#{values}/g, Object.values(values))
+                                .replace(/#{values}/g, getValues(Object.values(values)))
                                 .replace(/#{pairAssignations}/g, getPairs(values))
             ;
 
@@ -274,8 +274,14 @@ module.exports = function(setup) {
 
     function Escape(value){
 
-        if (isNaN(value)) return  '\"' + value + '\"'
-        return value;
+        if (isNaN(value))
+            if (utils.isAnObject(value))
+                return '\'' + JSON.stringify(value) + '\'';
+            else if (typeof value == 'boolean')
+                return value;
+            else
+                return '\'' + value + '\'';
+        else return value;
     }
 
     function getPairs(values){
@@ -308,6 +314,15 @@ module.exports = function(setup) {
         if (strWhere.length > 0) strWhere = ' WHERE ' + strWhere;
 
         return strWhere;
+    }
+
+    function getValues(values){
+
+        const all = values.map(el => {
+           return Escape(el)
+        })
+
+            return all.join(',');
     }
 
     return model;
