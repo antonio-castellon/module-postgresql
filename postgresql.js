@@ -98,6 +98,8 @@ module.exports = function(setup) {
     model.save = save;
     model.remove = remove;
     model.execute = execute;
+    model._AND = ' AND ';
+    model._OR = ' || ';
 
     //
     //  FUNCTION BODY ( PUBLIC )

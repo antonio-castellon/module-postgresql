@@ -38,7 +38,7 @@ saved for example as 'config.postgresql.js'
         * @param tableName - Name of the table in Postgre to look inside
         * @param where - JSON object that contains the parameters to be found on the JSON Document
         * @param docName - name of the column on table that contains the JSON data, by default: 'document'
-        * @param conditions - conditions for all where values on the select , by default: ' || '
+        * @param conditions - conditions for all where values on the select , by default: ' || ', use _AND or _OR constants from db instance
         * @return an object or List of results as JSON objects
 
 ##### Returns All data from a table based on column values
@@ -46,7 +46,7 @@ saved for example as 'config.postgresql.js'
     findByColumns(tableName, where [, conditions ])
         * @param tableName - Name of the table in Postgre to look inside
         * @param where - JSON object that contains the parameters to be found on the JSON Document
-        * @param conditions - conditions for all where values on the select , by default: ' || '
+        * @param conditions - conditions for all where values on the select , by default: ' || ' , use _AND or _OR constants from db instance
         * @return an object or List of results as JSON objects
 
 ##### Insert or Update values from a JSON-document based on document matching. 
