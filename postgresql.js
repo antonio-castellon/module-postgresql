@@ -97,10 +97,23 @@ module.exports = function(setup) {
     model.saveDocument = saveDocument;
     model.save = save;
     model.remove = remove;
+    model.execute = execute;
 
     //
     //  FUNCTION BODY ( PUBLIC )
     //
+
+    function execute(sql,params ){
+        const query = {
+            text: sql ,
+            values: params
+        }
+
+        if (setup.TRACES) console.log(query);
+
+        return db.query(query)
+
+    }
 
     function findByDocKeys(tableName, where, docName = "document",conditions = " || ") {
             return find(where, tableName, docName, conditions);
@@ -141,17 +154,8 @@ module.exports = function(setup) {
                 .replace(/#{document}/g, JSON.stringify(document))
             ;
 
-
-            const query = {
-                text: cmdQuery ,
-                values: []
-            }
-
-            if (setup.TRACES) console.log(query);
-
-            db
-                .query(query)
-                .then(res => resolve(res.rows))
+            execute(cmdQuery, [])
+                .then(res => resolve(true))
                 .catch(err =>
                     setImmediate(() => {
                         console.log(err);
@@ -191,16 +195,8 @@ module.exports = function(setup) {
             ;
 
 
-            const query = {
-                text: cmdQuery ,
-                values: []
-            }
-
-            if (setup.TRACES) console.log(query);
-
-            db
-                .query(query)
-                .then(res => resolve(res.rows))
+            execute(cmdQuery, [])
+                .then(res => resolve(true))
                 .catch(err =>
                     setImmediate(() => {
                         console.log(err);
@@ -220,13 +216,8 @@ module.exports = function(setup) {
 
             let cmdQuery = 'DELETE FROM \"' + tableName + '\" WHERE ' + getWhere(where, docName);
 
-            const query = { text: cmdQuery , values: []  }
-
-            if (setup.TRACES) console.log(query);
-
-            db
-                .query(query)
-                .then(res => resolve(res.rows))
+            execute(cmdQuery, [])
+                .then(res => resolve(true))
                 .catch(err =>
                     setImmediate(() => {
                         console.log(err);
@@ -254,15 +245,9 @@ module.exports = function(setup) {
 
             if (where.length > 0) { where = ' WHERE ' + where; };
 
-            const query = {
-                text: 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where ,
-                values: []
-            }
+            const cmdQuery = 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where;
 
-            if (setup.TRACES) console.log(query);
-
-            db
-                .query(query)
+            execute(cmdQuery, [])
                 .then(res => resolve(res.rows))
                 .catch(err =>
                     setImmediate(() => {

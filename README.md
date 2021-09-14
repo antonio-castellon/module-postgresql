@@ -57,6 +57,7 @@ saved for example as 'config.postgresql.js'
         * @param tableName - Name of the table 
         * @param where - JSON object that contains the parameters to be found on the JSON Document
         * @param docName - name of the column on table that contains the JSON data, by default: 'document'
+        * @return - true if te operation was sucessfully done
 
 ##### Insert or Update values from a Table
 
@@ -64,6 +65,7 @@ saved for example as 'config.postgresql.js'
         * @param values - to update or to be saved
         * @param tableName - Name of the table
         * @param where - JSON object that contains the parameters to use in the filter search, by default = {}
+        * @return - true if te operation was sucessfully done
 
 ##### Delete value on table 
 
@@ -71,4 +73,12 @@ saved for example as 'config.postgresql.js'
         * @param tableName - Name of the table
         * @param where - JSON object that contains the parameters to use in the filter
         * @param docName - name of the column on table that contains the JSON data, if it's NULL means to search by column values on table not inside the document.
+        * @return - true if te operation was sucessfully done
 
+##### Execute an SQL sentence directly
+Use it carefully, only in case that a complex SQL sentence is needed.
+
+    execute(sql, params)
+        * @param sql - SQL sentence to be executed
+        * @param params - parameters to use in the SQL sentence ($1, $2, etc) as an Array of values or Objects.
+        * @return an object or List of results as JSON objects
