@@ -93,6 +93,7 @@ module.exports = function(setup) {
     //
 
     model.findByDocKeys = findByDocKeys;
+    model.findAllFieldsByDocKeys = findAllFieldsByDocKeys;
     model.findByColumns = findByColumns;
     model.saveDocument = saveDocument;
     model.save = save;
@@ -119,6 +120,10 @@ module.exports = function(setup) {
 
     function findByDocKeys(tableName, where, docName = "document",conditions = " || ") {
             return find(where, tableName, docName, conditions);
+    }
+
+    function findAllFieldsByDocKeys(tableName, where, docName = "document",conditions = " || ") {
+        return find(where, tableName, docName, conditions, true);
     }
 
     function findByColumns(tableName, where, conditions = " || ") {
@@ -241,7 +246,7 @@ module.exports = function(setup) {
     // PRIVATE FUNCTIONS
     //
 
-    function find(values, tableName, docName,conditions){
+    function find(values, tableName, docName, conditions, fullSchema = false){
 
         return new Promise(function(resolve, reject){
 
@@ -250,8 +255,11 @@ module.exports = function(setup) {
                 || utils.isAnySQLInjection('' + conditions)) reject('sql injection detected');
 
             let where = getWhere(values,docName, conditions);
+            let wildcard = "*";
 
-            const cmdQuery = 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where;
+            if (utils.isNotNull(docName) && !fullSchema) {  wildcard = '\"' + docName + '\"'; }
+
+            const cmdQuery = 'SELECT jt.' + wildcard + ' FROM \"' + tableName + '\" as jt ' + where;
 
             execute(cmdQuery, [])
                 .then(res => resolve(res.rows))

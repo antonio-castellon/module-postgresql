@@ -41,6 +41,15 @@ saved for example as 'config.postgresql.js'
         * @param conditions - conditions for all where values on the select , by default: ' || ', use _AND or _OR constants from db instance
         * @return an object or List of results as JSON objects
 
+##### Return all values (including other columns) from a Table, looking for a matching on internal values of the document (where param)
+    findAllFieldsByDocKeys(tableName, where [, docName, conditions ])
+
+        * @param tableName - Name of the table in Postgre to look inside
+        * @param where - JSON object that contains the parameters to be found on the JSON Document
+        * @param docName - name of the column on table that contains the JSON data, by default: 'document'
+        * @param conditions - conditions for all where values on the select , by default: ' || ', use _AND or _OR constants from db instance
+        * @return an object or List of results as JSON objects with all collateral FIELDS (if exists) from the same table (not only the JSON document)
+
 ##### Returns All data from a table based on column values
 
     findByColumns(tableName, where [, conditions ])
