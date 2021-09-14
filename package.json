@@ -1,5 +1,5 @@
 {
-  "name": "module-postgresql",
+  "name": "@acastellon/postgresql",
   "version": "1.0.1",
   "description": "",
   "main": "index.js",
