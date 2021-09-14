@@ -152,7 +152,7 @@ module.exports = function(setup) {
 
             cmdQuery = cmdQuery.replace(/#{tableName}/g, tableName)
                 .replace(/#{docName}/g, docName)
-                .replace(/#{where}/g, ' WHERE ' + strWhere)
+                .replace(/#{where}/g, strWhere)
                 .replace(/#{document}/g, JSON.stringify(document))
             ;
 
@@ -190,7 +190,7 @@ module.exports = function(setup) {
             }
 
             cmdQuery = cmdQuery.replace(/#{tableName}/g, tableName)
-                                .replace(/#{where}/g, ' WHERE ' + strWhere)
+                                .replace(/#{where}/g, strWhere)
                                 .replace(/#{colNames}/g, Object.keys(values))
                                 .replace(/#{values}/g, Object.values(values))
                                 .replace(/#{pairAssignations}/g, getPairs(values))
@@ -216,16 +216,22 @@ module.exports = function(setup) {
             if (utils.isAnySQLInjection(tableName)) reject('sql injection detected');
             if (utils.isEmpty(where)) reject('missing filter (where) to identify items to be deleted');
 
-            let cmdQuery = 'DELETE FROM \"' + tableName + '\" WHERE ' + getWhere(where, docName);
+            const strWhere = getWhere(where, docName);
 
-            execute(cmdQuery, [])
-                .then(res => resolve(true))
-                .catch(err =>
-                    setImmediate(() => {
-                        console.log(err);
-                        reject(err);
-                    })
-                )
+            if (strWhere.length > 0)
+            {
+                let cmdQuery = 'DELETE FROM \"' + tableName + '\" ' + strWhere;
+
+                execute(cmdQuery, [])
+                    .then(res => resolve(true))
+                    .catch(err =>
+                        setImmediate(() => {
+                            console.log(err);
+                            reject(err);
+                        })
+                    )
+            }
+            else reject(false);
 
         });
     }
@@ -244,8 +250,6 @@ module.exports = function(setup) {
                 || utils.isAnySQLInjection('' + conditions)) reject('sql injection detected');
 
             let where = getWhere(values,docName, conditions);
-
-            if (where.length > 0) { where = ' WHERE ' + where; };
 
             const cmdQuery = 'SELECT jt.* FROM \"' + tableName + '\" as jt ' + where;
 
@@ -292,6 +296,8 @@ module.exports = function(setup) {
             strWhere = strWhere + _aux + _prefixDoc + _escape + key + _escape + '=\'' + values[key] + '\'';
             _aux = conditions;
         })
+
+        if (strWhere.length > 0) strWhere = ' WHERE ' + strWhere;
 
         return strWhere;
     }

@@ -68,6 +68,8 @@ saved for example as 'config.postgresql.js'
         * @return - true if te operation was sucessfully done
 
 ##### Delete value on table 
+Use it carefully, if you include into the where clause just a portion of the data, it will delete ALL documents that has the same pattern
+Preferable to use an approach of an additional column as UUID to proceed to delete, instead to use matches of the properties on the document (if you're not sure that one of the property is unique).
 
     remove(tableName, where, docName)
         * @param tableName - Name of the table
@@ -76,7 +78,7 @@ saved for example as 'config.postgresql.js'
         * @return - true if te operation was sucessfully done
 
 ##### Execute an SQL sentence directly
-Use it carefully, only in case that a complex SQL sentence is needed.
+Use it carefully, only in case that a need of a complex SQL sentence.
 
     execute(sql, params)
         * @param sql - SQL sentence to be executed
