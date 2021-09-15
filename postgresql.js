@@ -98,7 +98,7 @@ module.exports = function(setup) {
     model.saveDocument = saveDocument;
     model.save = save;
     model.remove = remove;
-    model.execute = execute;
+    model.query = query;
     model._AND = ' AND ';
     model._OR = ' || ';
 
@@ -107,12 +107,15 @@ module.exports = function(setup) {
     //
 
     /**
-     * Direct SQL query to the database
+     * Direct SQL query to the database - DROP, DELETE, INSERT, UPDATE are not allowed
      * @param sql - SQL command sentence
      * @param params - parameters if are needed in the sentence using ($1, $2 ... ) as a reference in the query.
      * @returns {*}
      */
-    function execute(sql,params ){
+    function query(sql, params){
+
+        if (utils.isAnySQLInjection(sql)) reject('sql injection detected');
+
         const query = {
             text: sql ,
             values: params
@@ -121,7 +124,6 @@ module.exports = function(setup) {
         if (setup.TRACES) console.log(query);
 
         return db.query(query)
-
     }
 
     /**
@@ -184,7 +186,7 @@ module.exports = function(setup) {
                 .replace(/#{document}/g, JSON.stringify(document))
             ;
 
-            execute(cmdQuery, [])
+            _execute(cmdQuery, [])
                 .then(res => resolve(true))
                 .catch(err =>
                     setImmediate(() => {
@@ -232,7 +234,7 @@ module.exports = function(setup) {
             ;
 
 
-            execute(cmdQuery, [])
+            _execute(cmdQuery, [])
                 .then(res => resolve(true))
                 .catch(err =>
                     setImmediate(() => {
@@ -265,7 +267,7 @@ module.exports = function(setup) {
             {
                 let cmdQuery = 'DELETE FROM \"' + tableName + '\" ' + strWhere;
 
-                execute(cmdQuery, [])
+                _execute(cmdQuery, [])
                     .then(res => resolve(true))
                     .catch(err =>
                         setImmediate(() => {
@@ -284,6 +286,18 @@ module.exports = function(setup) {
     // PRIVATE FUNCTIONS
     //
 
+    function _execute(sql, params ){
+        const query = {
+            text: sql ,
+            values: params
+        }
+
+        if (setup.TRACES) console.log(query);
+
+        return db.query(query)
+
+    }
+
     function find(values, tableName, docName, conditions, fullSchema = false){
 
         return new Promise(function(resolve, reject){
@@ -299,7 +313,7 @@ module.exports = function(setup) {
 
             const cmdQuery = 'SELECT jt.' + wildcard + ' FROM \"' + tableName + '\" as jt ' + where;
 
-            execute(cmdQuery, [])
+            _execute(cmdQuery, [])
                 .then(res => resolve(res.rows))
                 .catch(err =>
                     setImmediate(() => {
