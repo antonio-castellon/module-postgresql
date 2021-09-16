@@ -359,8 +359,10 @@ module.exports = function(setup) {
         else _escape = '\"';
 
         Object.keys(values).forEach(function(key) {
-            strWhere = strWhere + _aux + _prefixDoc + _escape + key + _escape + '=\'' + values[key] + '\'';
-            _aux = conditions;
+            if (utils.isNotUndefined(values[key])) {
+                strWhere = strWhere + _aux + _prefixDoc + _escape + key + _escape + '=\'' + values[key] + '\'';
+                _aux = conditions;
+            }
         })
 
         if (strWhere.length > 0) strWhere = ' WHERE ' + strWhere;
