@@ -99,6 +99,7 @@ module.exports = function(setup) {
     model.save = save;
     model.remove = remove;
     model.query = query;
+    model.update = update;
     model._AND = ' AND ';
     model._OR = ' || ';
 
@@ -124,6 +125,24 @@ module.exports = function(setup) {
         if (setup.TRACES) console.log(query);
 
         return db.query(query)
+    }
+
+    /**
+     * Additional method to update fields on table, be careful using it because it has no control about the
+     * sql sentence executed
+     *
+     * @param sql
+     * @param params
+     * @returns {*}
+     */
+    function update(sql, params) {
+
+        const query = {
+            text: sql ,
+            values: params
+        }
+        return db.query(query)
+
     }
 
     /**
