@@ -360,8 +360,23 @@ module.exports = function(setup) {
 
         Object.keys(values).forEach(function(key) {
             if (utils.isNotUndefined(values[key])) {
-                strWhere = strWhere + _aux + _prefixDoc + _escape + key + _escape + '=\'' + values[key] + '\'';
-                _aux = conditions;
+               if(Array.isArray(values[key]))
+               {
+                   strWhere = strWhere + _aux + "(";
+                   _aux = "";
+                   values[key].forEach(function (value){
+                       strWhere = strWhere + _aux +
+                                        _prefixDoc + _escape + key + _escape + '=\'' + value + '\'';
+                       _aux = " OR ";
+                   })
+
+                   strWhere = strWhere + ")";
+                   _aux = conditions;
+               }
+               else {
+                   strWhere = strWhere + _aux + _prefixDoc + _escape + key + _escape + '=\'' + values[key] + '\'';
+                   _aux = conditions;
+               }
             }
         })
 

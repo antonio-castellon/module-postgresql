@@ -1,6 +1,6 @@
 {
   "name": "@acastellon/postgresql",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "",
   "main": "postgresql.js",
   "scripts": {
@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "@acastellon/utils": "^1.0.2",
-    "aws-sdk": "^2.986.0",
+    "aws-sdk": "^2.1007.0",
     "pg": "^8.7.1"
   },
   "author": "Antonio Castellon",
