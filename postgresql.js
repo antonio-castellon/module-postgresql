@@ -2,7 +2,7 @@
 //
 // PostgreSQL connector manager specialized on JSON objects.
 //
-// Castellon.CH (c)
+// Castellon.CH - 2019-2026 (c)
 // Author: Antonio Castellon - antonio@castellon.ch
 //
 // config parameter:
