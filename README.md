@@ -1,5 +1,6 @@
 # module-postgresql
-Postgresql database connector focus on simplify the access to Document Storages as JSON fields
+
+PostgreSQL database connector focused on simplifying the access to Document Storages as JSON fields.
 
 #### configuration
 
@@ -27,7 +28,7 @@ saved for example as 'config.postgresql.js'
 #### usage:
 
     const config = require('./config.postgresql.js');
-    const db = require('@acastellon/module-postgresql')(config);
+    const db = require('@acastellon/postgresql')(config);
 
 #### methods
 
@@ -59,14 +60,13 @@ saved for example as 'config.postgresql.js'
         * @return an object or List of results as JSON objects
 
 ##### Insert or Update values from a JSON-document based on document matching. 
-##### It means, all documents that has the same conditions on the table referenced will be changed for the new JSON document value. 
 
     saveDocument(document, tableName, where[, docName])
         * @param document - document to be saved 
         * @param tableName - Name of the table 
         * @param where - JSON object that contains the parameters to be found on the JSON Document
         * @param docName - name of the column on table that contains the JSON data, by default: 'document'
-        * @return - true if te operation was sucessfully done
+        * @return - true if the operation was successfully done
 
 ##### Save column values inside a declared table. It can be used to update only some fields of the table.
 
@@ -74,22 +74,21 @@ saved for example as 'config.postgresql.js'
         * @param values - to update or to be saved as a pair key-values on an Object
         * @param tableName - Name of the table
         * @param where - JSON object that contains the parameters to use in the filter search, by default = {}
-        * @return - true if te operation was sucessfully done
+        * @return - true if the operation was successfully done
 
 ##### Delete value on table 
-Use it carefully, if you include into the where clause just a portion of the data, it will delete ALL documents that has the same pattern
-Preferable to use an approach of an additional column as UUID to proceed to delete, instead to use matches of the properties on the document (if you're not sure that one of the property is unique).
 
     remove(tableName, where, docName)
         * @param tableName - Name of the table
         * @param where - JSON object that contains the parameters to use in the filter
         * @param docName - name of the column on table that contains the JSON data, if it's NULL means to search by column values on table not inside the document.
-        * @return - true if te operation was sucessfully done
+        * @return - true if the operation was successfully done
 
-##### Execute an SQL sentence directly
-Use it carefully, only in case that a need of a complex SQL sentence.
+##### Execute an SQL sentence directly (no injection protection for complex queries)
 
-    execute(sql, params)
+    query(sql, params)
         * @param sql - SQL sentence to be executed
-        * @param params - parameters to use in the SQL sentence ($1, $2, etc) as an Array of values or Objects.
-        * @return an object or List of results as JSON objects
+        * @param params - parameters to use in the SQL sentence ($1, $2, etc) as an Array of values.
+        * @return Promise of results
+
+    update(sql, params) - for direct updates without protection checks.
