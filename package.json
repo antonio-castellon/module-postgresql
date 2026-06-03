@@ -1,6 +1,6 @@
 {
   "name": "@acastellon/postgresql",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "PostgreSQL database connector focused on simplifying the access to Document Storages as JSON fields",
   "main": "postgresql.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "json"
   ],
   "dependencies": {
-    "@acastellon/utils": "^1.1.0",
+    "@acastellon/utils": "^1.2.0",
     "aws-sdk": "^2.1118.0",
     "pg": "^8.7.1"
   },
