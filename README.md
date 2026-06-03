@@ -32,63 +32,38 @@ saved for example as 'config.postgresql.js'
 
 #### methods
 
-##### Returns all values from a Table searching by an internal document values.
+##### findByDocKeys(tableName, where [, docName, conditions ])
+Returns documents from the JSON column matching the where inside the doc.
 
-    findByDocKeys(tableName, where [, docName, conditions ])
+- **Params**: tableName (str), where (obj), docName (default 'document'), conditions (default ' || ' or use db._AND / db._OR)
+- **Returns**: Promise<array of docs>
+- **Injection protection**: Yes (on table/doc/conditions)
 
-        * @param tableName - Name of the table in Postgre to look inside
-        * @param where - JSON object that contains the parameters to be found on the JSON Document
-        * @param docName - name of the column on table that contains the JSON data, by default: 'document'
-        * @param conditions - conditions for all where values on the select , by default: ' || ', use _AND or _OR constants from db instance
-        * @return an object or List of results as JSON objects
+##### findAllFieldsByDocKeys(...)
+Like above but returns full row (not just the document column).
 
-##### Return all values (including other columns) from a Table, looking for a matching on internal values of the document (where param)
-    findAllFieldsByDocKeys(tableName, where [, docName, conditions ])
+##### findByColumns(tableName, where [, conditions ])
+Search by top-level columns (not inside JSON doc).
 
-        * @param tableName - Name of the table in Postgre to look inside
-        * @param where - JSON object that contains the parameters to be found on the JSON Document
-        * @param docName - name of the column on table that contains the JSON data, by default: 'document'
-        * @param conditions - conditions for all where values on the select , by default: ' || ', use _AND or _OR constants from db instance
-        * @return an object or List of results as JSON objects with all collateral FIELDS (if exists) from the same table (not only the JSON document)
+##### saveDocument(document, tableName, where[, docName])
+Insert or update a full document JSON (uses PL/pgSQL DO block for upsert).
 
-##### Returns All data from a table based on column values
+##### save(values, tableName [, where])
+Column-based insert/upsert.
 
-    findByColumns(tableName, where [, conditions ])
-        * @param tableName - Name of the table in Postgre to look inside
-        * @param where - JSON object that contains the parameters to be found on the JSON Document
-        * @param conditions - conditions for all where values on the select , by default: ' || ' , use _AND or _OR constants from db instance
-        * @return an object or List of results as JSON objects
+##### remove(tableName, where, docName)
+Delete. Careful: partial where can delete many rows.
 
-##### Insert or Update values from a JSON-document based on document matching. 
+##### query(sql, params)
+Raw query with basic injection guard on the sql text.
 
-    saveDocument(document, tableName, where[, docName])
-        * @param document - document to be saved 
-        * @param tableName - Name of the table 
-        * @param where - JSON object that contains the parameters to be found on the JSON Document
-        * @param docName - name of the column on table that contains the JSON data, by default: 'document'
-        * @return - true if the operation was successfully done
+##### update(sql, params)
+Raw update (no guard).
 
-##### Save column values inside a declared table. It can be used to update only some fields of the table.
+**Constants**: db._AND, db._OR
 
-    save(values, tableName [, where])
-        * @param values - to update or to be saved as a pair key-values on an Object
-        * @param tableName - Name of the table
-        * @param where - JSON object that contains the parameters to use in the filter search, by default = {}
-        * @return - true if the operation was successfully done
+See source for full escaping / where building logic.
 
-##### Delete value on table 
+## License
 
-    remove(tableName, where, docName)
-        * @param tableName - Name of the table
-        * @param where - JSON object that contains the parameters to use in the filter
-        * @param docName - name of the column on table that contains the JSON data, if it's NULL means to search by column values on table not inside the document.
-        * @return - true if the operation was successfully done
-
-##### Execute an SQL sentence directly (no injection protection for complex queries)
-
-    query(sql, params)
-        * @param sql - SQL sentence to be executed
-        * @param params - parameters to use in the SQL sentence ($1, $2, etc) as an Array of values.
-        * @return Promise of results
-
-    update(sql, params) - for direct updates without protection checks.
+MIT

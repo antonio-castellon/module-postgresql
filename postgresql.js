@@ -32,6 +32,11 @@ const { RDS } = require('aws-sdk');
 const fs = require('fs');
 const utils = require('@acastellon/utils')();
 
+/**
+ * PostgreSQL document/JSON store helper.
+ * @param {object} setup - Configuration (see module docs)
+ * @returns {object} model with query methods
+ */
 module.exports = function(setup) {
 
     const model = {};
@@ -91,6 +96,12 @@ module.exports = function(setup) {
     model._AND = ' AND ';
     model._OR = ' || ';
 
+    /**
+     * Direct SQL query (injection protection on the sql string).
+     * @param {string} sql
+     * @param {any[]} [params]
+     * @returns {Promise}
+     */
     function query(sql, params){
         if (utils.isAnySQLInjection(sql)) {
             return Promise.reject(new Error('sql injection detected'));
@@ -101,11 +112,23 @@ module.exports = function(setup) {
         return db.query(q);
     }
 
+    /**
+     * Raw update (no injection protection).
+     * @param {string} sql
+     * @param {any[]} [params]
+     * @returns {Promise}
+     */
     function update(sql, params) {
         const q = { text: sql, values: params };
         return db.query(q);
     }
 
+    /**
+     * @param {string} tableName
+     * @param {object} where
+     * @param {string} [docName='document']
+     * @param {string} [conditions=' || ']
+     */
     function findByDocKeys(tableName, where, docName = "document", conditions = " || ") {
         return find(where, tableName, docName, conditions);
     }
@@ -118,6 +141,13 @@ module.exports = function(setup) {
         return find(where, tableName, null, conditions);
     }
 
+    /**
+     * Upsert a full document JSON into a column.
+     * @param {object} document
+     * @param {string} tableName
+     * @param {object} where
+     * @param {string} [docName='document']
+     */
     function saveDocument(document, tableName, where, docName = "document"){
         return new Promise((resolve, reject) => {
             if (utils.isAnySQLInjection(tableName)) {
@@ -152,6 +182,12 @@ module.exports = function(setup) {
         });
     }
 
+    /**
+     * Upsert by columns.
+     * @param {object} values
+     * @param {string} tableName
+     * @param {object} [where={}]
+     */
     function save(values, tableName, where = {}){
         return new Promise((resolve, reject) => {
             if (utils.isAnySQLInjection(tableName)) {
@@ -185,6 +221,12 @@ module.exports = function(setup) {
         });
     }
 
+    /**
+     * Delete rows.
+     * @param {string} tableName
+     * @param {object} where
+     * @param {string} [docName]
+     */
     function remove(tableName, where, docName){
         return new Promise((resolve, reject) => {
             if (utils.isAnySQLInjection(tableName)) {
