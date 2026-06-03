@@ -33,9 +33,27 @@ const fs = require('fs');
 const utils = require('@acastellon/utils')();
 
 /**
- * PostgreSQL document/JSON store helper.
- * @param {object} setup - Configuration (see module docs)
- * @returns {object} model with query methods
+ * PostgreSQL document/JSON store helper factory.
+ *
+ * Provides methods for storing and querying JSON documents in PostgreSQL tables
+ * (using a dedicated JSON column for the document + optional top-level columns).
+ * Includes basic SQL injection guards on table/column names and dynamic parts.
+ *
+ * Supports both RDS (IAM auth) and standard password connections, plus optional TLS certs.
+ *
+ * @param {object} setup - Configuration object
+ * @param {string} setup.POSTGRE_URL
+ * @param {number} setup.POSTGRE_PORT
+ * @param {string} setup.POSTGRE_DATABASE
+ * @param {string} setup.POSTGRE_USER
+ * @param {string} [setup.POSTGRE_PASSWORD] - Not needed for RDS_CLOUD_CONNECTION
+ * @param {string} [setup.CERTIFICATION_PATH] - Path to TLS certs (root.crt, postgresql.key, postgresql.crt)
+ * @param {object} [setup.RDS_CLOUD_CONNECTION] - For AWS RDS IAM auth
+ * @param {string} setup.RDS_CLOUD_CONNECTION.ACCESS_KEY_ID
+ * @param {string} setup.RDS_CLOUD_CONNECTION.SECRET_ACCESS_KEY
+ * @param {string} setup.RDS_CLOUD_CONNECTION.REGION
+ * @param {boolean} [setup.TRACES=false]
+ * @returns {object} model with the documented methods + _AND / _OR constants
  */
 module.exports = function(setup) {
 
@@ -97,10 +115,11 @@ module.exports = function(setup) {
     model._OR = ' || ';
 
     /**
-     * Direct SQL query (injection protection on the sql string).
+     * Direct SQL query (with basic injection protection on the sql string itself).
+     *
      * @param {string} sql
      * @param {any[]} [params]
-     * @returns {Promise}
+     * @returns {Promise<import('pg').QueryResult>}
      */
     function query(sql, params){
         if (utils.isAnySQLInjection(sql)) {
@@ -113,10 +132,12 @@ module.exports = function(setup) {
     }
 
     /**
-     * Raw update (no injection protection).
+     * Raw update (no injection protection on the SQL).
+     * Use with trusted static SQL + parameters.
+     *
      * @param {string} sql
      * @param {any[]} [params]
-     * @returns {Promise}
+     * @returns {Promise<import('pg').QueryResult>}
      */
     function update(sql, params) {
         const q = { text: sql, values: params };
@@ -124,29 +145,51 @@ module.exports = function(setup) {
     }
 
     /**
+     * Find documents by matching inside the JSON document column (byExample style).
+     *
      * @param {string} tableName
      * @param {object} where
      * @param {string} [docName='document']
      * @param {string} [conditions=' || ']
+     * @returns {Promise<Array>}
      */
     function findByDocKeys(tableName, where, docName = "document", conditions = " || ") {
         return find(where, tableName, docName, conditions);
     }
 
+    /**
+     * Like findByDocKeys but returns the full row (all columns), not just the document.
+     *
+     * @param {string} tableName
+     * @param {object} where
+     * @param {string} [docName='document']
+     * @param {string} [conditions=' || ']
+     * @returns {Promise<Array>}
+     */
     function findAllFieldsByDocKeys(tableName, where, docName = "document", conditions = " || ") {
         return find(where, tableName, docName, conditions, true);
     }
 
+    /**
+     * Find by top-level columns (outside the JSON document).
+     *
+     * @param {string} tableName
+     * @param {object} where
+     * @param {string} [conditions=' || ']
+     * @returns {Promise<Array>}
+     */
     function findByColumns(tableName, where, conditions = " || ") {
         return find(where, tableName, null, conditions);
     }
 
     /**
-     * Upsert a full document JSON into a column.
-     * @param {object} document
+     * Upsert a full document into the JSON column (uses PL/pgSQL DO block for upsert).
+     *
+     * @param {object} document - the JSON document to store
      * @param {string} tableName
-     * @param {object} where
+     * @param {object} where - used to decide insert vs update
      * @param {string} [docName='document']
+     * @returns {Promise<boolean>}
      */
     function saveDocument(document, tableName, where, docName = "document"){
         return new Promise((resolve, reject) => {
@@ -183,10 +226,12 @@ module.exports = function(setup) {
     }
 
     /**
-     * Upsert by columns.
-     * @param {object} values
+     * Column-based insert or upsert (by top-level columns).
+     *
+     * @param {object} values - column values
      * @param {string} tableName
      * @param {object} [where={}]
+     * @returns {Promise<boolean>}
      */
     function save(values, tableName, where = {}){
         return new Promise((resolve, reject) => {
@@ -222,10 +267,13 @@ module.exports = function(setup) {
     }
 
     /**
-     * Delete rows.
+     * Delete rows matching the where clause.
+     * Warning: incomplete where can delete many rows.
+     *
      * @param {string} tableName
      * @param {object} where
      * @param {string} [docName]
+     * @returns {Promise<boolean>}
      */
     function remove(tableName, where, docName){
         return new Promise((resolve, reject) => {
@@ -251,12 +299,20 @@ module.exports = function(setup) {
         });
     }
 
+    /**
+     * Internal query executor with optional tracing.
+     * @private
+     */
     function _execute(sql, params ){
         const q = { text: sql, values: params };
         if (setup.TRACES) console.log(q);
         return db.query(q);
     }
 
+    /**
+     * Internal find implementation.
+     * @private
+     */
     function find(values, tableName, docName, conditions, fullSchema = false){
         return new Promise((resolve, reject) => {
             if (utils.isAnySQLInjection(tableName)
@@ -279,6 +335,10 @@ module.exports = function(setup) {
         });
     }
 
+    /**
+     * Internal value escaping helper.
+     * @private
+     */
     function Escape(value){
         if (isNaN(value))
             if (utils.isAnObject(value))
@@ -290,6 +350,10 @@ module.exports = function(setup) {
         else return value;
     }
 
+    /**
+     * Internal helper to build SET clause for updates.
+     * @private
+     */
     function getPairs(values){
         let _aux = "";
         let _pairs = "";
@@ -300,6 +364,10 @@ module.exports = function(setup) {
         return _pairs;
     }
 
+    /**
+     * Internal WHERE clause builder (supports arrays with OR, JSON paths, etc.).
+     * @private
+     */
     function getWhere(values, docName, conditions = " && "){
         let strWhere = "";
         let _aux = "";
@@ -336,6 +404,10 @@ module.exports = function(setup) {
         return strWhere;
     }
 
+    /**
+     * Internal VALUES list builder.
+     * @private
+     */
     function getValues(values){
         const all = values.map(el => Escape(el));
         return all.join(',');
