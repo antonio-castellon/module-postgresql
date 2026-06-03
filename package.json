@@ -1,7 +1,7 @@
 {
   "name": "@acastellon/postgresql",
-  "version": "1.0.12",
-  "description": "",
+  "version": "1.1.0",
+  "description": "PostgreSQL database connector focused on simplifying access to Document Storages as JSON fields",
   "main": "postgresql.js",
   "scripts": {
     "test": "node test.js"
@@ -11,12 +11,13 @@
     "url": "git+https://github.com/antonio-castellon/module-postgresql.git"
   },
   "keywords": [
-    "potsgresql",
+    "postgresql",
     "utils",
-    "database"
+    "database",
+    "json"
   ],
   "dependencies": {
-    "@acastellon/utils": "^1.0.2",
+    "@acastellon/utils": "^1.1.0",
     "aws-sdk": "^2.1118.0",
     "pg": "^8.7.1"
   },
@@ -25,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/antonio-castellon/module-postgresql/issues"
   },
-  "homepage": "https://github.com/antonio-castellon/module-postgresql#readme"
+  "homepage": "https://github.com/antonio-castellon/module-postgresql#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
